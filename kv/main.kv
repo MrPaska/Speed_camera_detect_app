@@ -1,0 +1,134 @@
+MDScreen:
+    name: "main"
+    MDBottomNavigation:
+
+        MDBottomNavigationItem:
+            name: "params"
+            text: "Parametrai"
+            icon: "cog"
+
+            MDBottomNavigationItem:
+                name: "params"
+                text: "Parametrai"
+                icon: "cog"
+
+                MDBoxLayout:
+                    size_hint: .2, .02
+                    pos_hint: {"center_x": .15, "center_y": .90}
+                    #md_bg_color: rgba(0,255,255,255)
+                    MDRoundFlatIconButton:
+                        text: "Atsijungti"
+                        icon: "logout"
+                        text_color: "black"
+                        on_release:
+                            app.logout()
+
+                MDBoxLayout:
+                    size_hint: .7, .07
+                    pos_hint: {"center_x": .5, "center_y": .63}
+                    MDLabel:
+                        text: "Momentinio greičio matuoklis"
+                    MDBoxLayout:
+                        orientation: 'horizontal'
+                        pos_hint: {"center_y": .1}
+                        Widget:
+                        MDSwitch:
+                            id: sw_moment
+                            active: True
+                            icon_active: "check"
+                            icon_active_color: "white"
+
+                MDBoxLayout:
+                    size_hint: .7, .07
+                    pos_hint: {"center_x": .5, "center_y": .53}
+                    MDLabel:
+                        text: "Vidutinio greičio matuoklis"
+                    MDBoxLayout:
+                        orientation: 'horizontal'
+                        pos_hint: {"center_y": .1}
+                        Widget:
+                        MDSwitch:
+                            id: sw_avg
+                            active: True
+                            icon_active: "check"
+                            icon_active_color: "white"
+
+                MDBoxLayout:
+                    size_hint: .7, .07
+                    pos_hint: {"center_x": .5, "center_y": .43}
+                    MDLabel:
+                        text: "Veikimo zona"
+                    MDBoxLayout:
+                        orientation: 'horizontal'
+                        pos_hint: {"center_y": .1}
+                        Widget:
+                        MDSwitch:
+                            id: sw_zone
+                            active: True
+                            icon_active: "check"
+                            icon_active_color: "white"
+
+
+
+        MDBottomNavigationItem:
+            name: "stat"
+            text: "Statistika"
+            icon: "database"
+            on_tab_press: app.statistics()
+
+            MDAnchorLayout:
+                id: anchor_layout
+
+
+        MDBottomNavigationItem:
+            name: "kam"
+            text: "Kamera"
+            icon: "camera"
+            on_leave: app.camera_off()
+
+            MDScreen:
+                MDFloatLayout:
+                    id: layout
+                    md_bg_color: rgba(255, 255, 255, 255)
+                    MDRectangleFlatIconButton:
+                        icon: "camera"
+                        text: "Įjungti kamerą"
+                        pos_hint: {"center_x": .5, "center_y": .5}
+                        theme_text_color: "Custom"
+                        text_color: "black"
+                        line_color: "blue"
+                        theme_icon_color: "Custom"
+                        icon_color: "blue"
+                        on_release:
+                            app.turn_on_camera()
+                    Image:
+                        id: image
+                        texture: app.image_texture
+                        opacity: 0
+                        size: root.size
+                        allow_stretch: True
+                        keep_ratio: False
+
+        MDBottomNavigationItem:
+            text: "Video"
+            icon: "file-video"
+            on_tab_press: app.update_video_list()
+
+            MDScreen:
+                MDScrollView:
+                    MDList:
+                        id: md_list
+
+                MDRectangleFlatIconButton:
+                    icon: "upload"
+                    text: "Įkelti video"
+                    pos_hint: {"center_x": .5, "center_y": .25}
+                    theme_text_color: "Custom"
+                    text_color: "black"
+                    line_color: "blue"
+                    icon_color: "blue"
+                    on_release: app.open_filemanager()
+
+
+
+
