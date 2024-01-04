@@ -11,7 +11,8 @@ from kivymd.uix.dialog import MDDialog
 from kivymd.uix.button import MDFlatButton
 import requests
 from kivy.core.window import Window
-from bounding_boxes import params, recognition
+# from bounding_boxes import params, recognition
+from socket_client import frames, ping_server
 from kivymd.uix.list import OneLineAvatarIconListItem, IconLeftWidget, IconRightWidget, OneLineListItem
 from kivymd.uix.filemanager import MDFileManager
 import shutil
@@ -22,11 +23,11 @@ from statistics import get_statistics
 class RecognitionApp(MDApp):
     image_texture = ObjectProperty(None)
     dialog = None
-    capture = None
     screen_manager = None
     video_folder = "./video"
     video_play = None
     user_id = None
+    i = None
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -48,7 +49,7 @@ class RecognitionApp(MDApp):
         return self.screen_manager
 
     def on_start(self):
-        Clock.schedule_once(self.start_window, 10)
+        Clock.schedule_once(self.start_window, 5)
 
     def start_window(self, *args):
         self.screen_manager.current = "start_sec"
@@ -84,23 +85,23 @@ class RecognitionApp(MDApp):
 
     def catching_frames(self, *args):
         try:
-            success, frames = self.capture.read()
-            if success:
-                recognition(frames, self.user_id)
-                buffer = cv2.flip(frames, 0).tobytes()
-                texture = Texture.create(size=(frames.shape[1], frames.shape[0]), colorfmt="bgr")
-                texture.blit_buffer(buffer, colorfmt="bgr", bufferfmt="ubyte")
-                self.root.current_screen.ids.image.texture = texture
+            print(self.i)
+            frame = frames(self.i)
+            buffer = cv2.flip(frame, 0).tobytes()
+            texture = Texture.create(size=(frame.shape[1], frame.shape[0]), colorfmt="bgr")
+            texture.blit_buffer(buffer, colorfmt="bgr", bufferfmt="ubyte")
+            self.root.current_screen.ids.image.texture = texture
         except Exception as e:
             print(e)
 
     def turn_on_camera(self):
         self.check_params()
-        if self.root.current_screen.ids.image.opacity == 0:
-            self.root.current_screen.ids.image.opacity = 1
-        self.capture = cv2.VideoCapture(0)
-        # self.capture.set(cv2.CAP_PROP_FRAME_WIDTH, 640)
-        self.camera_play = Clock.schedule_interval(self.catching_frames, 1.0/30.0)
+        if self.check_server_conn():
+            if self.root.current_screen.ids.image.opacity == 0:
+                self.root.current_screen.ids.image.opacity = 1
+                self.i = 1
+            # self.capture.set(cv2.CAP_PROP_FRAME_WIDTH, 640)
+            self.camera_play = Clock.schedule_interval(self.catching_frames, 1.0/30.0)
 
     def show_alert_dialog(self, title, text):
         self.dialog = MDDialog(
@@ -125,14 +126,25 @@ class RecognitionApp(MDApp):
             response = requests.get(url, timeout=timeout)
             response.raise_for_status()
         except Exception as e:
-            text = "Nėra interneto ryšio :("
-            title = "Patikrinkite, ar tikrai esate prisijungę prie interneto"
-            self.show_alert_dialog(text, title)
+            title = "Nėra interneto ryšio :("
+            text = "Patikrinkite, ar tikrai esate prisijungę prie interneto"
+            self.show_alert_dialog(title, text)
         return response
+
+    def check_server_conn(self, *args):
+        if ping_server():
+            return True
+        else:
+            print("Can't conn to server!")
+            title = "Nėra ryšio su serveriu :("
+            text = "Neveiks ženklų aptikimo funkcija"
+            self.show_alert_dialog(title, text)
+            return False
 
     def close_dialog(self, *args):
         self.dialog.dismiss()
         Clock.schedule_once(self.check_internet_conn, 1)
+        # Clock.schedule_once(self.check_internet_conn, 1)
 
     def update_video_list(self):
         md_list = self.root.current_screen.ids.md_list
@@ -191,9 +203,9 @@ class RecognitionApp(MDApp):
 
     def camera_off(self):
         print("camera off")
-        self.capture = None
         self.root.current_screen.ids.image.opacity = 0
         if hasattr(self, "camera_play"):
+            self.i = 0
             self.camera_play.cancel()
 
     def statistics(self):
@@ -204,7 +216,7 @@ class RecognitionApp(MDApp):
         moment = self.root.current_screen.ids.sw_moment.active
         avg = self.root.current_screen.ids.sw_avg.active
         zone = self.root.current_screen.ids.sw_zone.active
-        params(moment, avg, zone)
+        #params(moment, avg, zone)
 
     def logout(self):
         self.screen_manager.current = "start_sec"
